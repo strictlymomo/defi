@@ -1,0 +1,77 @@
+
+/* ================================================
+   Force
+   ================================================ */
+
+/*	style definitions	*/
+.button-container {
+
+}
+button {
+  /*position: absolute;*/
+}
+
+#blue {
+  /*top: 1em;*/
+  /*left: 1em;*/
+}
+
+#orange {
+  /*top: 1em;*/
+  /*left: 8em;*/
+}
+
+#green {
+  /*top: 1em;*/
+  /*left: 16em;*/
+}
+
+.node {
+  stroke: white;
+  stroke-width: 2px;
+}
+
+.link {
+  stroke: rgba(0,0,0,.17);
+  stroke-width: 1px;
+}
+
+text {
+  font-family: sans-serif;
+  font-size: 10px;
+  stroke: black;
+  stroke-width: 0;
+}
+
+/* ================================================
+   Slider
+   ================================================ */
+
+.dot {
+  fill: rgba(0,0,0,.37);
+}
+
+.dotslider {
+  fill: rgba(0,0,0,.17);
+}
+
+.selected {
+  fill: rgba(0,0,0,.37);
+  stroke: rgba(0,0,0,.37);
+  stroke-width: 2px;
+}
+
+#content {
+  font-family: sans-serif;
+  margin: 0px 70px 0px 70px;
+  padding: 80px;
+  height: auto;
+}
+
+.plot {
+  border: 1px solid black;
+}
+
+.slider {
+  border: 1px solid black;
+}
