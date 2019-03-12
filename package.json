@@ -20,6 +20,8 @@
   },
   "homepage": "https://github.com/strictlymomo/defi#readme",
   "dependencies": {
-    "3d-force-graph": "^1.45.6"
+    "3d-force-graph": "^1.45.6",
+    "json-minify": "^1.0.0",
+    "node-json-minify": "^1.0.0"
   }
 }

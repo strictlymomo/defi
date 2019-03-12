@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <meta charset="utf-8"/>
+
+  <style>
+    body {
+      margin: 0;
+    }
+  </style>
+
+  <!--<script src="node_modules/3d-force-graph/dist/3d-force-graph.js"></script>-->
+  <script src="//unpkg.com/force-graph"></script>
+  <!--<script src="../../dist/force-graph.js"></script>-->
+</head>
+
+<body>
+
+
+<div id="graph"></div>
+
+<script>
+
+
+
+ fetch('/data/maker2.json').then(res => res.json()).then(data => {
+      const Graph = ForceGraph()
+      (document.getElementById('graph'))
+        .graphData(data)
+        .nodeId('id')
+        //.nodeVal('val')
+        .nodeLabel('id')
+        .nodeAutoColorBy('group')
+        .linkSource('source')
+        .linkTarget('target')
+    });
+
+    /*
+
+      const Graph = ForceGraph()
+    (document.getElementById('graph'))
+      .linkDirectionalParticles(2)
+      .graphData(gData)
+      .backgroundColor('#dddddd')
+      .nodeCanvasObject((node, ctx, globalScale) => {
+        const label = node.label;
+        const fontSize = 12 / globalScale;
+        ctx.font = `${fontSize}px Sans-Serif`;
+        const textWidth = ctx.measureText(label).width;
+        const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.2); // some padding
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.fillRect(node.x - bckgDimensions[0] / 2, node.y - bckgDimensions[1] / 2, ...bckgDimensions);
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#333';
+        ctx.fillText(label, node.x, node.y);
+      })
+      .linkDirectionalParticleSpeed(0.01) // this is the default
+
+
+  ;
+
+*/
+
+
+
+  /* /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  Data
+    Maker nodes = 3970
+    Maker edges = 
+
+
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+
+
+
+
+
+</script>
+</body>
+</html>
