@@ -17,20 +17,25 @@
 
 <body>
 
-
+<button onClick="killUpdate()">stop</button>
 <div id="graph"></div>
 
 <script>
+let running= null;
 
 let complete = false;
 
-let year = 2017;
-let month = 12;
-let day = 1;
+let year = 2018;
+let month = 1;
+let day = 0;
 
 let Graph = null;
 let fetchedData = null;
 
+function killUpdate() {
+  clearInterval(running);
+
+}
 
 function makeDateString(day, month, year) {
     let innerDay = day;
@@ -48,17 +53,51 @@ function makeDateString(day, month, year) {
 
      fetchedData = data;
 
+    console.log("data fetched");
+
+
      let graphData = {
-         "nodes": [],
+         "nodes": [
+  ],
          "links": [],
      };
 
 
-    graphData.nodes = [].concat(
-        data.nodes.filter((node) => node.first_date.startsWith("2017")));
-    
-    graphData.links = [].concat(
-        data.links.filter((link) => link.date.startsWith("2017")));
+
+
+      console.log(graphData);
+
+      let x = data.nodes.filter((node) => node.first_date.startsWith("2017"));
+      console.log(x);
+
+      let y = data.links.filter((link) => link.date.startsWith("2017"));
+
+
+  console.log(y);
+
+
+
+
+
+
+    graphData.nodes = x;
+    graphData.links = y;
+
+    graphData.nodes.push(
+      {
+    "id":"0x448a5065aebb8e423f0896e6c5d525c040f59af3",
+    "group": "Maker_tub",
+    "first_date": "2017-12-18"
+         }
+
+    )
+
+
+    console.log("start");
+
+
+
+
 
 
 
@@ -66,14 +105,19 @@ function makeDateString(day, month, year) {
     complete = true;
 
     if (complete === true ) {
+      console.warn("setting up graph");
 
          Graph = ForceGraph()
       (document.getElementById('graph'))
         .graphData(graphData)
         .nodeId('id')
+        .nodeAutoColorBy('group')
         //.nodeVal('val')
         .nodeLabel('id')
+        //.linkCurvature(1)
+        //.dagMode('radialout')
         //.nodeAutoColorBy('coin')
+        .cooldownTime(3000)
     
     }
 
@@ -81,11 +125,11 @@ function makeDateString(day, month, year) {
 
 
     // mess with Graph now
-    setInterval(() => {
+    running = setInterval(() => {
         console.log("date", day, month, year);
 
         day += 1;
-        if (day > 30) {
+        if (day > 31) {
             day = 1;
             month += 1;
             if (month > 12) {
@@ -109,17 +153,37 @@ function makeDateString(day, month, year) {
         let testLinks  = [].concat(
             fetchedData.links.filter((node) => node.date === dateString));
         
+        
+        
 
-        const { nodes, links } = Graph.graphData();
-        
-        Graph.graphData({
-            nodes: nodes.concat(test),
-            links: links.concat(testLinks)
-        });
-        
+        if (test.length + testLinks.length > 1) {
+
+          console.log("adding", test.length, 'new nodes and', testLinks.length, ' new edges');
+
+
+
+
+
+
+          const { nodes, links } = Graph.graphData();
+          
+
+              
+            Graph.graphData({
+                nodes: nodes.concat(test),
+                links: links.concat(testLinks)
+            });
+
+          
+
+        }
+
+
+
+
     
 
-    }, 50);
+    }, 100);
     
 
 
