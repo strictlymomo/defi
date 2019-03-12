@@ -1,0 +1,20 @@
+.dot,
+.dotslider {
+  fill: slategray;
+}
+
+.selected {
+  fill: red;
+  stroke: brown;
+}
+
+#content {
+  font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
+  margin: 0px 70px 0px 70px;
+  padding: 80px;
+  height: auto;
+}
+
+body {
+  padding-top: 50px;
+}

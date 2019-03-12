@@ -1,0 +1,25 @@
+{
+  "name": "defi",
+  "version": "1.0.0",
+  "description": "Alethio defi visualizatiton",
+  "main": "defi.js",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/strictlymomo/defi.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/strictlymomo/defi/issues"
+  },
+  "homepage": "https://github.com/strictlymomo/defi#readme",
+  "dependencies": {
+    "3d-force-graph": "^1.45.6"
+  }
+}
