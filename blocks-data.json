@@ -28,9 +28,12 @@
         { "id": "18", "group": "3", "label": "EOA", "first_date": "Sep 2018"},
         { "id": "19", "group": "3", "label": "EOA", "first_date": "Oct 2018"},
 
-        { "id": "20", "group": "8", "label": "Uniswap", "first_date": "Nov 2018"},
+        { "id": "20", "group": "8", "label": "Uniswap_DAI", "first_date": "Nov 2018"},
         { "id": "21", "group": "3", "label": "EOA", "first_date": "Nov 2018"},
-        { "id": "22", "group": "3", "label": "EOA", "first_date": "Jan 2019"}
+        { "id": "22", "group": "3", "label": "EOA", "first_date": "Jan 2019"},
+        { "id": "23", "group": "8", "label": "Uniswap_Maker", "first_date": "Nov 2018"},
+        { "id": "24", "group": "3", "label": "EOA", "first_date": "Nov 2018"},
+        { "id": "25", "group": "3", "label": "EOA", "first_date": "Jan 2019"}
     ],
 
     "links": [
@@ -70,9 +73,11 @@
 
         { "source": "15", "target": "14", "id": "5a", "date": "Jul 2018", "value": 1517.68},
         { "source": "14", "target": "13", "id": "5aa", "date": "Jul 2018", "value": 1517.68},
+        { "source": "15", "target": "13", "id": "5aaa", "date": "Jul 2018", "value": 1517.68},
 
         { "source": "16", "target": "14", "id": "5b", "date": "Aug 2018", "value": 1517.68},
         { "source": "14", "target": "13", "id": "5bb", "date": "Aug 2018", "value": 1517.68},
+        { "source": "16", "target": "13", "id": "5bbb", "date": "Aug 2018", "value": 1517.68},
 
 
         { "source": "18", "target": "17", "id": "6a", "date": "Sep 2018", "value": 1320.28},
@@ -86,8 +91,12 @@
         { "source": "20", "target": "13", "id": "7aa", "date": "Nov 2018", "value": 1320.28},
 
         { "source": "22", "target": "20", "id": "7b", "date": "Jan 2019", "value": 1320.28},
-        { "source": "20", "target": "13", "id": "7bb", "date": "Jan 2019", "value": 1320.28}
+        { "source": "20", "target": "13", "id": "7bb", "date": "Jan 2019", "value": 1320.28},
 
+        { "source": "24", "target": "23", "id": "7a", "date": "Nov 2018", "value": 1320.28},
+        { "source": "23", "target": "13", "id": "7aa", "date": "Nov 2018", "value": 1320.28},
 
+        { "source": "25", "target": "23", "id": "7b", "date": "Jan 2019", "value": 1320.28},
+        { "source": "23", "target": "13", "id": "7bb", "date": "Jan 2019", "value": 1320.28}
     ]
 }
