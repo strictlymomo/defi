@@ -17,7 +17,7 @@ const Graph = ForceGraph3D()
         .jsonUrl('data/blocks-data.json')
         .linkDirectionalParticles(1)
         .linkDirectionalParticleWidth(d => d.value / 1000) 
-        .linkDirectionalParticleSpeed(d => d.value * .00001)
+        .linkDirectionalParticleSpeed(d => d.value * .000014)
         .nodeRelSize(1)
         .nodeAutoColorBy('group')
         .nodeThreeObject(node => {
