@@ -8,11 +8,19 @@
     body {
       margin: 0;
     }
+    #analysis-details-container {
+      position: fixed;
+      top: 100px;
+      width: 200px;
+      border: 1px solid red;
+      height: 400px;
+      overflow-y: auto;
+    }
   </style>
 
-<script src="//unpkg.com/three"></script>
+  <script src="//unpkg.com/three"></script>
   <script src="//unpkg.com/three-spritetext"></script>
-  
+
   <!--<script src="node_modules/3d-force-graph/dist/3d-force-graph.js"></script>-->
   <script src="//unpkg.com/force-graph"></script>
   <!--<script src="../../dist/force-graph.js"></script>-->
@@ -20,7 +28,36 @@
 
 <body>
 <div id="graph"></div>
+<div id="analysis-details-container"></div>
 <script>
+
+let detailsContainer = document.getElementById('analysis-details-container');
+
+function showDetails(data) {
+  var node = document.createElement("pre");                 // Create a <li> node
+  var textnode = document.createTextNode(data);         // Create a text node
+  node.appendChild(textnode);  
+  detailsContainer.appendChild(node);  
+  // console.log('Graph before:', Graph);
+    // removeDetails();
+    // console.log('Graph after:', Graph);
+
+    // detailsContainer.append("div")
+    //     .attr("id", "analysis-details")
+    //     .attr("class", "visible")
+    //     .datum(datum)
+    //     .html(function(datum){ return "<header>" +
+    //         "<img src='assets/" + datum.Logo + "' alt=''>" +
+    //         "<h2 class='detail-header'><a href='https://etherscan.io/token/" + datum.Address + "' target='_blank'>" + datum.Name + "</a> <span>(" + datum.Ticker + ")</span></h2>" +
+    //         "</header>" +
+    //         "<p>" + datum.Description + "</p>" +
+    //         "<p class='fact'>Value per token: $" + datum['Price ($)'] + " @ " + datum['Price (ETH)'] + " Eth</p>" +
+    //         "<p class='fact'>Total Supply: " + datum.Supply + " " + datum.Ticker +" ($ " + datum['Market Cap'] + ".00)</p>" +
+    //         "<div id='3d-graph' class='three'></div>" +
+    //         "<div class='disclaimer'>*Visualization does not accurately model the "+ datum.Ticker + " token and is for demo purposes only.</div>"
+    //     })
+    //     .call(function(d){renderGraph();});
+}
 
 fetch('/data/maker_2019.json').then(res => res.json()).then(data => {
 
@@ -36,6 +73,15 @@ fetch('/data/maker_2019.json').then(res => res.json()).then(data => {
       .graphData(graphData)
       .nodeId('id')
       .nodeLabel('label')
+      .onNodeClick(d => {
+          console.log("d", d);
+          fetch("https://api.ethstats.io/v1/accounts/" + d.id)
+            .then(response => response.json())
+            .then(myJson => {
+              console.log(myJson);
+              showDetails(`${myJson.data.type} \n ${myJson.data.id}`);
+            })
+      })
       .nodeAutoColorBy('group')
       .linkColor('white')
 });

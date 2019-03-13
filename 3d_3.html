@@ -12,6 +12,28 @@
   
   <script>
 
+function showDetails(datum){
+    console.log('Graph before:', Graph);
+    removeDetails();
+    console.log('Graph after:', Graph);
+
+    detailsContainer.append("div")
+        .attr("id", "analysis-details")
+        .attr("class", "visible")
+        .datum(datum)
+        .html(function(datum){ return "<header>" +
+            "<img src='assets/" + datum.Logo + "' alt=''>" +
+            "<h2 class='detail-header'><a href='https://etherscan.io/token/" + datum.Address + "' target='_blank'>" + datum.Name + "</a> <span>(" + datum.Ticker + ")</span></h2>" +
+            "</header>" +
+            "<p>" + datum.Description + "</p>" +
+            "<p class='fact'>Value per token: $" + datum['Price ($)'] + " @ " + datum['Price (ETH)'] + " Eth</p>" +
+            "<p class='fact'>Total Supply: " + datum.Supply + " " + datum.Ticker +" ($ " + datum['Market Cap'] + ".00)</p>" +
+            "<div id='3d-graph' class='three'></div>" +
+            "<div class='disclaimer'>*Visualization does not accurately model the "+ datum.Ticker + " token and is for demo purposes only.</div>"
+        })
+        .call(function(d){renderGraph();});
+  }
+
 const Graph = ForceGraph3D()
       (document.getElementById('3d-graph'))
         .jsonUrl('data/blocks-data.json')
@@ -19,6 +41,9 @@ const Graph = ForceGraph3D()
         .linkDirectionalParticleWidth(d => d.value / 1000) 
         .linkDirectionalParticleSpeed(d => d.value * .000014)
         .nodeRelSize(1)
+        .onNodeClick(d => {
+          console.log("d", d);
+        })
         .nodeAutoColorBy('group')
         .nodeThreeObject(node => {
           if (node.label !== 'EOA'){
