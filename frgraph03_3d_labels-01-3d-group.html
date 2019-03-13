@@ -132,6 +132,53 @@ fetch('/data/maker2.json').then(res => res.json()).then(data => {
     .nodeRelSize(2)
     .linkDirectionalParticles(10)
     .linkDirectionalParticleSpeed(0.003)
+    //.linkDirectionalParticleWidth(d => d.value / 1000) 
+     //.linkDirectionalParticleSpeed(d => d.value * .0003)
+       
+ .nodeThreeObject(node => {
+
+        let month = node.first_date.substr(5,2);
+
+        if (month !== 12) {
+
+        
+        
+              // use a sphere as a drag handle
+                const obj = new THREE.Mesh(
+              new THREE.SphereGeometry(10),
+              new THREE.MeshBasicMaterial({ depthWrite: false, transparent: true, opacity: 0 })
+            );
+            // add text sprite as child
+     
+            const sprite = new SpriteText(month);
+
+            switch(month) {
+                case "12":
+                    sprite.color = 'grey'; break;
+                case "01":
+                    sprite.color = 'white'; break;
+                case "02":
+                    sprite.color = 'yellow'; break;
+                case "03":
+                    sprite.color = 'red'; break;
+                case "04":
+                    sprite.color = 'white'; break;
+
+            }
+            
+            
+            
+            
+            
+            
+            sprite.textHeight = 2;
+            obj.add(sprite);
+            return obj;
+            }
+
+
+        })
+        
     //.linkDirectionalParticleWidth(1)
     .enableNodeDrag(false)
     .nodeColor(node => {
@@ -150,9 +197,9 @@ fetch('/data/maker2.json').then(res => res.json()).then(data => {
           break;
       }
     })
+    
 
-
-
+    //.d3Force('charge').strength(-150)
     // mess with Graph now
     running = setInterval(() => {
 
