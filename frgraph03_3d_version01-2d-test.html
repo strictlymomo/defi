@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <meta charset="utf-8"/>
+
+  <style>
+    body {
+      margin: 0;
+    }
+
+    #total-value, #date {
+      position: fixed;
+      top: 5%;
+      margin: auto;
+      color: #fff;
+      
+      font-size: 400%;
+
+      font-family: sans-serif;
+
+      padding: 2%;
+      z-index: 99999;
+
+
+    }
+
+    #date {
+      left: 0;
+      top: 5%;
+      
+    }
+
+    #total-value {
+      right: 0;
+      text-align: 'right';
+
+    }
+  </style>
+
+  <!--<script src="node_modules/3d-force-graph/dist/3d-force-graph.js"></script>-->
+ <!-- <script src="//unpkg.com/force-graph"></script>-->
+  <!--<script src="../../dist/force-graph.js"></script>-->
+
+ <script src="node_modules/3d-force-graph/dist/3d-force-graph.js"></script>
+
+</head>
+
+<body>
+
+<button onClick="killUpdate()">stop</button>
+
+
+<div id="total-value">0</div>
+<div id="date" onClick="playPause();">date</div>
+
+<div id="3d-graph"></div>
+<div id="number-line" style="width: 100%; height: 20px; background-color: #333; position: fixed; bottom: 0"></div>
+<div id="number-line" style="width: 1%; height: 20px; background-color: blue; position: fixed; bottom: 0"></div>
+
+
+
+
+<script>
+
+
+let w = window.innerWidth; 
+
+// 'running' is setInterval that can be cleared
+let running= null;
+
+function killUpdate() { clearInterval(running); }
+
+let year = 2018;
+let month = 1;
+let day = 0;
+
+let transferredValue = 0;
+
+let Graph = null;
+let fetchedData = null;
+let sim_running = true;
+
+function playPause() {
+  if (sim_running === true) {
+    Graph.pauseAnimation();
+    sim_running = false;
+  } else {
+    Graph.resumeAnimation();
+    sim_running = true;
+  }
+  
+}
+function makeDateString(day, month, year) {
+
+    let innerDay = day;
+    let innerMonth = month;
+
+    if (day < 10) innerDay = "0" + day;
+    if (month < 10) innerMonth = "0" + month;
+    return year + "-" + innerMonth + "-" + innerDay;
+}
+
+
+let interval = 2000;
+
+fetch('/data/maker2.json').then(res => res.json()).then(data => {
+  // copy for later
+  fetchedData = data;
+  // todo -- allow input params
+  let graphData = { "nodes": data.nodes.filter((node) => node.first_date.startsWith("2017")), 
+                    "links": data.links.filter((link) => link.date.startsWith("2017")), };
+  // adding maker tub
+  graphData.nodes.push({
+    "id":"0x448a5065aebb8e423f0896e6c5d525c040f59af3", "group": "Maker_tub", "first_date": "2017-12-18" });
+  
+  Graph = ForceGraph3D()
+    (document.getElementById('3d-graph'))
+    .numDimensions(2)
+    .forceEngine('d3')
+    .d3AlphaDecay(1.2)
+    .d3VelocityDecay(0.6)
+    .graphData(graphData)
+    .nodeAutoColorBy('group')
+    .nodeResolution(1)
+    .linkOpacity(0.2)
+    .linkWidth(node => node["value"] / 100)
+    //.linkDirectionalParticles('value')
+    //.linkDirectionalParticleSpeed(0.4)
+    //.linkDirectionalParticleWidth(1)
+    .enableNodeDrag(false)
+    .nodeColor(node => {
+      switch(node.group) {
+        case '0':
+          return 'black';
+          break;
+        case '1':
+          return 'blue';
+          break;
+        case '2':
+          return 'red';
+          break;
+        case '2a':
+          return 'yellow';
+          break;
+      }
+    })
+
+
+
+    // mess with Graph now
+    running = setInterval(() => {
+
+        day += 1;
+        if (day > 31) {
+            day = 1;
+            month += 1;
+            
+            
+            if (month > 12) { 
+              
+                month = 1; year += 1;
+                
+                if ((year > 2018) && (month > 3)) console.log("END");
+
+            }
+        }
+
+        // now we have a new date
+        let dateString = makeDateString(day, month, year);
+       //   console.warn("---->", dateString);
+
+        
+
+
+        let test  = [].concat(
+            fetchedData.nodes.filter((node) => node.first_date === dateString));
+        
+        let testLinks  = [].concat(
+            fetchedData.links.filter((node) => node.date === dateString));
+        
+        
+        
+        
+
+        document.getElementById('date').textContent = dateString;
+
+        if (test.length + testLinks.length > 1) {
+         // console.log("adding", test.length, 'new nodes and', testLinks.length, ' new edges');
+          
+          let subTotal = 0;
+          testLinks.forEach(element => { subTotal += element.value; });
+          transferredValue += subTotal;
+
+          document.getElementById('total-value').textContent = Math.round(transferredValue);
+          
+           let { nodes, links } = Graph.graphData();
+                
+                Graph.graphData({
+                  nodes: nodes.concat(test),
+                  links: links.concat(testLinks)
+                });
+          
+          //  if (transferredValue < 60000) Graph.nodeRelSize(transferredValue/18000);
+
+
+            
+
+            
+          
+
+        }
+
+
+    }, interval);
+    
+
+
+});
+
+
+
+
+
+
+
+
+</script>
+</body>
+</html>
