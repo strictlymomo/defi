@@ -47,7 +47,7 @@
     }
 
     </style>
-    <script src="node_modules/3d-force-graph/dist/3d-force-graph.js"></script>
+    <script src="dist/3d-force-graph.min.js"></script>
     <script src="dist/moment.min.js"></script>
 </head>
 <body>
@@ -108,7 +108,7 @@
     }
 
     async function getTotalValue() {
-      let response = await fetch('/data/maker3_timeline.json');
+      let response = await fetch('./data/maker3_timeline.json');
       let totalValue = await response.json();
       return totalValue;
     }
