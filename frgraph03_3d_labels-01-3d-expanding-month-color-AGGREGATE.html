@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
 
-  <link href="https://fonts.googleapis.com/css?family=Barlow" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Barlow:300,400,700" rel="stylesheet">
 
   <style>
     body {
@@ -31,7 +31,25 @@
 
     #total-value {
       right: 0;
-      text-align: 'right';
+      text-align: right;
+    }
+
+    #total-value-stats {
+      text-align: left;
+    }
+
+    #total-value-stats strong {
+      width: 150px;
+      font-weight: 700;
+    }
+
+    #total-value header {
+      margin: 0;
+    }
+
+    #total-value p {
+      font-weight: 300;
+      font-size: 16px;
     }
 
     #analysis-details-container {
@@ -44,6 +62,7 @@
       color: white;
       margin: 2%;
     }
+
   </style>
 
   <!--<script src="node_modules/3d-force-graph/dist/3d-force-graph.js"></script>-->
@@ -52,6 +71,7 @@
   <script src="//unpkg.com/three"></script>
   <script src="//unpkg.com/three-spritetext"></script>
   <script src="node_modules/3d-force-graph/dist/3d-force-graph.js"></script>
+  
   <script src="dist/moment.min.js"></script>
 </head>
 
@@ -59,8 +79,11 @@
 
   <button onClick="killUpdate()">stop</button>
 
-  <div id="total-value">0</div>
-  <div id="date" onClick="playPause();">date</div>
+  <div id="total-value">
+    <header id="total-value-header"></header>
+    <div id="total-value-stats"></div>
+  </div>
+  <div id="date" onClick="playPause();"></div>
   <div id="analysis-details-container"></div>
 
 
@@ -294,7 +317,26 @@
             return el.date === dateString;
           });
           let stat = match.value;
-          document.getElementById('total-value').textContent = `${Math.round(match.value)} ETH locked`;
+          let fixedStat = {
+              valueIn: 50000,
+              valueOut: 10000,
+              contacts: 458,
+              EOAs: 4598,
+              txs: 13409304
+          };
+
+          // And then create our markup:
+          const markup = `
+              <p><strong>ETH IN:</strong> ${Math.round(fixedStat.valueIn)} ETH</p>
+              <p><strong>ETH OUT:</strong> ${Math.round(fixedStat.valueIn)} ETH</p>
+              <p><strong>SMART CONTRACTS:</strong> ${fixedStat.contracts}</p>
+              <p><strong>ACCOUNTS:</strong> ${fixedStat.EOAs}</p>
+              <p><strong>TOTAL TRANSACTIONS:</strong> ${Math.round(fixedStat.txs)}</p>
+          `;
+
+          // document.getElementById('total-value').textContent = `${Math.round(match.value)} ETH locked`;
+          document.getElementById('total-value-header').textContent = `${Math.round(match.value)} ETH locked`;
+          document.getElementById('total-value-stats').innerHTML = markup;
 
           let {
             nodes,
