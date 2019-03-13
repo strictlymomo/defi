@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+  <meta charset="utf-8" />
+
+  <link href="https://fonts.googleapis.com/css?family=Barlow" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: Barlow, sans-serif;
+      margin: 0;
+    }
+
+    #total-value,
+    #date {
+      position: fixed;
+      top: 5%;
+      margin: auto;
+      color: #fff;
+      font-size: 400%;
+      padding: 2%;
+      z-index: 99999;
+    }
+
+    #date {
+      left: 0;
+      top: 5%;
+    }
+
+    #total-value {
+      right: 0;
+      text-align: 'right';
+    }
+
+    #analysis-details-container {
+      position: fixed;
+      top: 200px;
+      width: 300px;
+      border: 1px solid rgba(255, 255, 255, .2);
+      height: 400px;
+      overflow-y: auto;
+      color: white;
+      margin: 2%;
+    }
+  </style>
+
+  <!--<script src="node_modules/3d-force-graph/dist/3d-force-graph.js"></script>-->
+  <!-- <script src="//unpkg.com/force-graph"></script>-->
+  <!--<script src="../../dist/force-graph.js"></script>-->
+  <script src="//unpkg.com/three"></script>
+  <script src="//unpkg.com/three-spritetext"></script>
+  <script src="node_modules/3d-force-graph/dist/3d-force-graph.js"></script>
+  <script src="dist/moment.min.js"></script>
+</head>
+
+<body>
+
+  <button onClick="killUpdate()">stop</button>
+
+  <div id="total-value">0</div>
+  <div id="date" onClick="playPause();">date</div>
+  <div id="analysis-details-container"></div>
+
+
+  <div id="3d-graph"></div>
+  <div id="number-line" style="width: 100%; height: 20px; background-color: #333; position: fixed; bottom: 0"></div>
+  <div id="number-line" style="width: 1%; height: 20px; background-color: blue; position: fixed; bottom: 0"></div>
+
+  <script>
+
+    let w = window.innerWidth;
+
+    // 'running' is setInterval that can be cleared
+    let running = null;
+
+    function killUpdate() {
+      clearInterval(running);
+    }
+
+    let year = 2018;
+    let month = 1;
+    let day = 0;
+
+    let transferredValue = 0;
+
+    let Graph = null;
+    let fetchedData = null;
+    let sim_running = true;
+
+    let detailsContainer = document.getElementById('analysis-details-container');
+
+    function showDetails(data) {
+      var node = document.createElement("pre");
+      var textnode = document.createTextNode(data);
+      node.appendChild(textnode);
+      detailsContainer.appendChild(node);
+    }
+
+    function playPause() {
+      if (sim_running === true) {
+        Graph.pauseAnimation();
+        sim_running = false;
+      } else {
+        Graph.resumeAnimation();
+        sim_running = true;
+      }
+
+    }
+
+    function makeDateString(day, month, year) {
+
+      let innerDay = day;
+      let innerMonth = month;
+
+      if (day < 10) innerDay = "0" + day;
+      if (month < 10) innerMonth = "0" + month;
+      return year + "-" + innerMonth + "-" + innerDay;
+    }
+  
+    async function getTimeline() {
+      let response = await fetch('/data/maker3_timeline.json');
+      let timeline = await response.json();
+      return timeline;
+    }
+
+    let interval = 1000;
+
+    async function init() {
+
+      let timeline = await getTimeline();
+      // console.log('timeline', timeline);
+
+      fetch('/data/maker3_pruned.json').then(res => res.json()).then(data => {
+      // copy for later
+      fetchedData = data;
+      console.log('data', data);
+      // todo -- allow input params
+      let graphData = {
+        "nodes": data.nodes.filter((node) => node.first_date.startsWith("2017")),
+        "links": data.links.filter((link) => link.date.startsWith("2017")),
+      };
+      // adding maker tub
+      graphData.nodes.push({
+        "id": "0x448a5065aebb8e423f0896e6c5d525c040f59af3",
+        "group": "Maker_tub",
+        "first_date": "2017-12-18"
+      });
+
+      Graph = ForceGraph3D()
+        (document.getElementById('3d-graph'))
+        .numDimensions(3)
+        .forceEngine('d3')
+        .d3AlphaDecay(1.01)
+        .d3VelocityDecay(0.3)
+        .graphData(graphData)
+        //.nodeAutoColorBy(d => graphData.links[d.source].group)
+        .nodeResolution(1)
+        .linkOpacity(0.05)
+        .linkWidth(node => node["value"] / 100)
+
+        //.linkAutoColorBy(d => d["value"])
+        .nodeRelSize(2)
+        .linkDirectionalParticles(10)
+        .linkDirectionalParticleSpeed(0.003)
+        //.linkDirectionalParticleWidth(d => d.value / 1000) 
+        //.linkDirectionalParticleSpeed(d => d.value * .0003)
+        .onNodeClick(d => {
+          console.log("d", d);
+          fetch("https://api.ethstats.io/v1/accounts/" + d.id)
+            .then(response => response.json())
+            .then(myJson => {
+              console.log(myJson);
+              showDetails(`${myJson.data.type} \n ${myJson.data.id}`);
+            })
+        })
+        .nodeThreeObject(node => {
+
+          let month = node.first_date.substr(5, 2);
+
+          if (month !== 12) {
+
+
+
+            // use a sphere as a drag handle
+            const obj = new THREE.Mesh(
+              new THREE.SphereGeometry(10),
+              new THREE.MeshBasicMaterial({
+                depthWrite: false,
+                transparent: true,
+                opacity: 0
+              })
+            );
+            // add text sprite as child
+            const sprite = new SpriteText(month);
+            sprite.textHeight = 2;
+            sprite.color = 'grey';
+
+
+            switch (month) {
+              case "01":
+                sprite.color = 'white';
+                sprite.textHeight = 3;
+                break;
+              case "02":
+                sprite.color = 'yellow';
+                sprite.textHeight = 4;
+                break;
+              case "03":
+                sprite.color = 'red';
+                sprite.textHeight = 6;
+                break;
+              case "04":
+                sprite.color = 'blue';
+                sprite.textHeight = 8;
+                break;
+
+            }
+
+            obj.add(sprite);
+            return obj;
+          }
+
+
+        })
+
+        //.linkDirectionalParticleWidth(1)
+        .enableNodeDrag(false)
+        .nodeColor(node => {
+          switch (node.group) {
+            case 'Contract':
+              return 'white';
+              break;
+            case 'EOA':
+              return 'yellow';
+              break;
+            case 'Maker_tub':
+              return 'red';
+              break;
+            case '2a':
+              return 'yellow';
+              break;
+          }
+        })
+
+
+      //.d3Force('charge').strength(-150)
+      // mess with Graph now
+      running = setInterval(() => {
+
+        day += 1;
+        if (day > 31) {
+          day = 1;
+          month += 1;
+
+
+          if (month > 12) {
+
+            month = 1;
+            year += 1;
+
+            if ((year > 2018) && (month > 3)) console.log("END");
+
+          }
+        }
+
+        // now we have a new date
+        let dateString = makeDateString(day, month, year);
+        //   console.warn("---->", dateString);
+
+
+
+
+        let test = [].concat(
+          fetchedData.nodes.filter((node) => node.first_date === dateString));
+
+        let testLinks = [].concat(
+          fetchedData.links.filter((node) => node.date === dateString));
+
+
+        let formattedDate = moment(dateString).format("MMM D, YYYY");
+        document.getElementById('date').textContent = formattedDate;
+
+        if (test.length + testLinks.length > 1) {
+          // console.log("adding", test.length, 'new nodes and', testLinks.length, ' new edges');
+          // let subTotal = 0;
+          // testLinks.forEach(element => {
+          //   subTotal += element.value;
+          // });
+          // transferredValue += subTotal;
+
+          let match = timeline.find(function(el) {
+            return el.date === dateString;
+          });
+          let stat = match.value;
+          document.getElementById('total-value').textContent = `${Math.round(match.value)} ETH locked`;
+
+          let {
+            nodes,
+            links
+          } = Graph.graphData();
+
+          Graph.graphData({
+            nodes: nodes.concat(test),
+            links: links.concat(testLinks)
+          });
+
+          //  if (transferredValue < 60000) Graph.nodeRelSize(transferredValue/18000);
+
+        }
+      }, interval);
+    });
+
+    }
+
+    init();
+
+    
+  </script>
+</body>
+
+</html>
