@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <meta charset="utf-8"/>
+
+  <style>
+    body {
+      margin: 0;
+    }
+  </style>
+
+  <!--<script src="node_modules/3d-force-graph/dist/3d-force-graph.js"></script>-->
+  <script src="//unpkg.com/force-graph"></script>
+  <!--<script src="../../dist/force-graph.js"></script>-->
+</head>
+
+<body>
+
+<button onClick="killUpdate()">stop</button>
+<div id="graph"></div>
+
+<script>
+let running= null;
+
+let complete = false;
+
+let year = 2019;
+let month = 1;
+let day = 17;
+
+let Graph = null;
+let fetchedData = null;
+
+function killUpdate() {
+  clearInterval(running);
+
+}
+
+function makeDateString(day, month, year) {
+    let innerDay = day;
+    let innerMonth = month;
+    
+
+   // if (day < 10) innerDay = "0" + day;
+   // if (month < 10) innerMonth = "0" + month;
+    
+    return year + "-" + innerMonth + "-" + innerDay;
+}
+
+
+ fetch('/data/maker_2019.json').then(res => res.json()).then(data => {
+
+     fetchedData = data;
+
+    console.log("data fetched",data);
+
+
+    // start w empty array
+     let graphData = {
+         "nodes": [ ],
+         "links": [],
+     };
+
+
+
+
+      
+      let initialNodes = data.nodes.filter((node) => node.date.startsWith("2019-1-17"));
+      let initialLinks = data.links.filter((link) => link.date.startsWith("2019-1-17"));
+
+
+
+    graphData.nodes = initialNodes;
+    graphData.links = initialLinks;
+
+   
+
+
+    console.log("start");
+
+
+
+
+
+
+      console.warn("setting up graph");
+
+         Graph = ForceGraph()
+      (document.getElementById('graph'))
+        .graphData(graphData)
+        .nodeId('id')
+        .nodeAutoColorBy('group')
+        //.nodeVal('val')
+        .nodeLabel('id')
+        //.linkCurvature(1)
+        //.dagMode('radialout')
+        //.nodeAutoColorBy('coin')
+        .cooldownTime(3000)
+    
+
+
+
+
+    // periodic updates to graph
+    running = setInterval(() => {
+
+
+        console.log("date", day, month, year);
+
+        day += 1;
+        if (day > 31) {
+            day = 1;
+            month += 1;
+            if (month > 12) {
+                month = 1;
+                year += 1;
+                if ((year > 2018) && (month > 3)) {
+                    console.log("END");
+
+                }
+            }
+        }
+
+        // now we have a new date
+        let dateString = makeDateString(day, month, year);
+        console.log("looking for data on", dateString);
+
+
+
+
+
+        let test  = [].concat(
+            fetchedData.nodes.filter((node) => node.date === dateString));
+        
+        let testLinks  = [].concat(
+            fetchedData.links.filter((node) => node.date === dateString));
+        
+        
+        
+
+        if (test.length + testLinks.length > 1) {
+
+          console.log("adding", test.length, 'new nodes and', testLinks.length, ' new edges');
+
+
+
+
+
+
+          const { nodes, links } = Graph.graphData();
+          
+
+              
+            Graph.graphData({
+                nodes: nodes.concat(test),
+                links: links.concat(testLinks)
+            });
+
+          
+
+        }
+
+
+
+
+    
+
+    }, 100);
+    
+
+
+
+      
+    
+    
+    });
+
+
+    /*
+
+      const Graph = ForceGraph()
+    (document.getElementById('graph'))
+      .linkDirectionalParticles(2)
+      .graphData(gData)
+      .backgroundColor('#dddddd')
+      .nodeCanvasObject((node, ctx, globalScale) => {
+        const label = node.label;
+        const fontSize = 12 / globalScale;
+        ctx.font = `${fontSize}px Sans-Serif`;
+        const textWidth = ctx.measureText(label).width;
+        const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.2); // some padding
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.fillRect(node.x - bckgDimensions[0] / 2, node.y - bckgDimensions[1] / 2, ...bckgDimensions);
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#333';
+        ctx.fillText(label, node.x, node.y);
+      })
+      .linkDirectionalParticleSpeed(0.01) // this is the default
+
+
+  ;
+
+*/
+
+
+
+  /* /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  Data
+    Maker nodes = 3970
+    Maker edges = 
+
+
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+
+
+
+
+
+</script>
+</body>
+</html>
