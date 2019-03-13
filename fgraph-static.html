@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <meta charset="utf-8"/>
+
+  <style>
+    body {
+      margin: 0;
+    }
+  </style>
+
+<script src="//unpkg.com/three"></script>
+  <script src="//unpkg.com/three-spritetext"></script>
+  
+  <!--<script src="node_modules/3d-force-graph/dist/3d-force-graph.js"></script>-->
+  <script src="//unpkg.com/force-graph"></script>
+  <!--<script src="../../dist/force-graph.js"></script>-->
+</head>
+
+<body>
+<div id="graph"></div>
+<script>
+
+fetch('/data/maker_2019.json').then(res => res.json()).then(data => {
+
+  fetchedData = data;
+
+  let graphData = {
+    "nodes": data.nodes,
+    "links": data.links,
+  };
+
+  Graph = ForceGraph()
+    (document.getElementById('graph'))
+      .graphData(graphData)
+      .nodeId('id')
+      .nodeLabel('label')
+      .nodeAutoColorBy('group')
+      .linkColor('white')
+});
+
+
+    
+</script>
+</body>
+</html>

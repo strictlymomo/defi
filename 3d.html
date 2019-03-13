@@ -1,0 +1,55 @@
+<head>
+    <style> body { margin: 0; } </style>
+  
+    <!-- <script src="dist/3d-force-graph.js"></script> -->
+    <script src="node_modules/3d-force-graph/dist/3d-force-graph.js"></script>
+  </head>
+  
+  <body>
+  <div id="3d-graph"></div>
+  
+  <script>
+
+
+        fetch('/data/maker_2019_without_WETH.json').then(res => res.json()).then(data => {
+
+fetchedData = data;
+
+let graphData = {
+  "nodes": data.nodes,
+  "links": data.links,
+};
+
+Graph = ForceGraph3D()
+  (document.getElementById('3d-graph'))
+    .numDimensions(1)
+    .forceEngine('ngraph')
+    .graphData(graphData)
+    .nodeAutoColorBy('group')
+    .linkColor('red')
+    .linkOpacity(1)
+    .linkDirectionalParticles('value')
+    .linkDirectionalParticleSpeed(0.4)
+    .linkDirectionalParticleWidth(1)
+    .enableNodeDrag(true)
+    .nodeColor(node => {
+      switch(node.group) {
+        case '0':
+          return 'black';
+          break;
+        case '1':
+          return 'blue';
+          break;
+        case '2':
+          return 'red';
+          break;
+        case '2a':
+          return 'yellow';
+          break;
+      }
+    })
+});
+
+
+  </script>
+  </body>

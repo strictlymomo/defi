@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <meta charset="utf-8"/>
+
+  <style>
+    body {
+      margin: 0;
+    }
+  </style>
+
+  <!--<script src="node_modules/3d-force-graph/dist/3d-force-graph.js"></script>-->
+  <script src="//unpkg.com/force-graph"></script>
+  <!--<script src="../../dist/force-graph.js"></script>-->
+</head>
+
+<body>
+
+
+<div id="graph"></div>
+
+<script>
+
+
+let complete = false;
+
+let year = 2019;
+let month = 1;
+let day = 0;
+
+let Graph = null;
+let fetchedData = null;
+
+function makeDateString(day, month, year) {
+    let innerDay = day;
+    let innerMonth = month;    
+    // if (day < 10) innerDay = "0" + day;
+    // if (month < 10) innerMonth = "0" + month; 
+    return year + "-" + innerMonth + "-" + innerDay;
+}
+
+
+ fetch('/data/maker_2019.json').then(res => res.json()).then(data => {
+
+     fetchedData = data;
+
+     let graphData = {
+         "nodes": [],
+         "links": [],
+     };
+
+    graphData.nodes = [].concat(
+        data.nodes.filter((node) => node.date.startsWith("2018")));
+    
+    graphData.links = [].concat(
+        data.links.filter((link) => link.date.startsWith("2018")));
+
+
+    complete = true;
+
+    if (complete === true ) {
+
+         Graph = ForceGraph()
+      (document.getElementById('graph'))
+        .graphData(graphData)
+        .nodeId('id')
+        .nodeLabel('id')
+    }
+
+    // mess with Graph now
+    setInterval(() => {
+        console.log("date", day, month, year);
+
+        day += 1;
+        if (day > 30) {
+            day = 1;
+            month += 1;
+            if (month > 12) {
+                month = 1;
+                year += 1;
+                if ((year > 2019) && (month > 3)) {
+                    console.log("END");
+                }
+            }
+        }
+
+        // now we have a new date
+        let dateString = makeDateString(day, month, year);
+        console.log("Datestring:", dateString);
+
+        let test = [].concat(
+            fetchedData.nodes.filter((node) => node.date === dateString));
+        console.log("test:", test.length);
+
+        let testLinks = [].concat(
+            fetchedData.links.filter((node) => node.date === dateString));        
+        console.log("testLinks:", testLinks.length);
+
+        const { nodes, links } = Graph.graphData();
+        
+        Graph.graphData({
+            nodes: nodes.concat(test),
+            links: links.concat(testLinks)
+        });
+        
+    
+
+    }, 500);
+    
+    });
+
+</script>
+</body>
+</html>
