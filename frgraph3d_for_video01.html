@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <link href="https://fonts.googleapis.com/css?family=Barlow" rel="stylesheet">
+    <style>
+        
+        body { margin: 0; font-family: Barlow, sans-serif; overflow: hidden; }
+        #total-value, #date, #legend {
+            position: fixed; top: 1%;
+            margin: auto; color: #fff; font-size: 300%;
+            padding: 2%; z-index: 99999;
+        }
+        #date { left: 0; }
+        #total-value { right: 0; text-align: 'right'; }
+        #legend { left: 0; bottom: 0; text-align: left; top: initial; font-size: 150%; }
+        
+    </style>
+    <script src="node_modules/3d-force-graph/dist/3d-force-graph.js"></script>
+    <script src="dist/moment.min.js"></script>
+</head>
+<body>
+<div id="total-value">0</div>
+<div id="legend">
+    <div style="color: white">January</div>
+    <div style="color: yellow">February</div>
+    <div style="color: red">March</div>
+    <div style="color: blue">April</div>
+    <div style="color: green">May</div>
+    <div style="color: pink">June</div>
+    <div style="color: aqua">July</div>
+    <div style="color: beige">August</div>
+    <div style="color: purple">September</div>
+    <div style="color: orange">October</div>
+    <div style="color: yellowgreen">November</div>
+    <div style="color: grey">December</div>
+</div>
+
+<div id="date">Dec, 2017</div>
+<div id="3d-graph"></div>
+
+<script>
+    let interval = 350;
+    let damping = 10; // how many ms to add to interval over time to account for an ever increasing node graph
+    let running= null;
+    
+    function killUpdate() { clearInterval(running); }
+    
+    // start date
+    let year = 2018;
+    let month = 1;
+    let day = 0;
+    
+    
+    let transferredValue = 0;
+    
+    let Graph = null;
+    let fetchedData = null;
+    
+    async function getTimeline() {
+      let response = await fetch('./data/maker3_timeline.json');
+      let timeline = await response.json();
+      return timeline;
+    }
+
+    async function init() {
+
+        let timeline = await getTimeline();
+        
+        fetch('./data/maker3_pruned.json').then(res => res.json()).then(data => {
+            fetchedData = data;
+        
+            // initialize with 2017 data
+            let graphData = {   "nodes": data.nodes.filter((node) => node.first_date.startsWith("2017")), 
+                                "links": data.links.filter((link) => link.date.startsWith("2017")), };
+            // add maker tub
+            graphData.nodes.push({
+                "id":"0x448a5065aebb8e423f0896e6c5d525c040f59af3", "group": "Maker_tub", "first_date": "2017-12-18" });
+        
+            // create graph
+            Graph = ForceGraph3D()
+                (document.getElementById('3d-graph'))
+                .numDimensions(3)
+                .forceEngine('d3')
+                .d3AlphaDecay(0.901)
+                .d3VelocityDecay(0.5)
+                
+                .graphData(graphData)
+                .enableNodeDrag(false)        
+                
+                // low resolutions for better performance
+                .nodeResolution(1)
+                .nodeRelSize(1)
+                .nodeColor(node => getColor(node.first_date.substr(5, 2)))        
+                
+                .linkResolution(2)
+                .linkOpacity(0.1)
+                .linkWidth(node => node["value"] / 500)
+
+            // update graph
+            running = setInterval(() => {
+                day += 1;
+                if (day > 31) {
+                    day = 1; month += 1;
+                    if (month > 12) {  
+                        month = 1; year += 1;
+                        if ((year > 2018) && (month > 3)) console.log("END"); 
+                    }
+                }
+
+                // format date
+                let dateString = makeDateString(day, month, year);
+                let formattedDate = moment(dateString).format("MMM D, YYYY");
+                document.getElementById('date').textContent = formattedDate;
+            
+                // get new data
+                let newNodes  = [].concat(fetchedData.nodes.filter((node) => node.first_date === dateString));
+                let newLinks  = [].concat(fetchedData.links.filter((node) => node.date === dateString));
+        
+                // if we have data, add it and update ETH locked
+                if ((newNodes.length + newLinks.length) > 1) {
+                    let { nodes, links } = Graph.graphData();
+                    Graph.graphData({ nodes: nodes.concat(newNodes), links: links.concat(newLinks) });
+
+                    let match = timeline.find(function(el) { return el.date === dateString; });
+                    let stat = match.value;
+                    document.getElementById('total-value').textContent = `${numberWithCommas(Math.round(match.value))} ETH locked`;
+
+                    // slow down over time
+                    if (interval < 2000) { interval += damping; }
+                }
+            }, interval);
+        }); // end fetch
+    }
+    
+    init();
+
+// util functions
+function makeDateString(day, month, year) {
+        let innerDay = day; let innerMonth = month;
+        // padding if needed
+        if (day < 10) innerDay = "0" + day;
+        if (month < 10) innerMonth = "0" + month;
+        return year + "-" + innerMonth + "-" + innerDay;
+}
+
+// formatting total ETH locked value
+function numberWithCommas(x) { return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+
+// node coloring
+function getColor(monthString) {
+    switch (monthString) {
+            case '12': return 'grey';
+            case '01': return 'white';
+            case '02': return 'yellow';
+            case '03': return 'red';
+            case '04': return 'blue';
+            case '05': return 'green';
+            case '06': return 'pink';
+            case '07': return 'aqua';
+            case '08': return 'beige';
+            case '09': return 'purple';
+            case '10': return 'orange';
+            case '11': return 'yellowgreen';
+    }
+}
+</script>
+</body>
+</html>
