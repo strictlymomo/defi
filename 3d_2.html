@@ -1,0 +1,37 @@
+<head>
+    <style> body { margin: 0; } </style>
+
+    <script src="//unpkg.com/three"></script>
+    <script src="//unpkg.com/three-spritetext"></script>
+    <!-- <script src="dist/3d-force-graph.js"></script> -->
+    <script src="node_modules/3d-force-graph/dist/3d-force-graph.js"></script>
+  </head>
+  
+  <body>
+  <div id="3d-graph"></div>
+  
+  <script>
+
+const Graph = ForceGraph3D()
+      (document.getElementById('3d-graph'))
+        .jsonUrl('data/maker_2019_without_WETH.json')
+        .nodeAutoColorBy('group')
+        .nodeThreeObject(node => {
+          // use a sphere as a drag handle
+          const obj = new THREE.Mesh(
+            new THREE.SphereGeometry(10),
+            new THREE.MeshBasicMaterial({ depthWrite: false, transparent: true, opacity: 0 })
+          );
+          // add text sprite as child
+          const sprite = new SpriteText(node.id);
+          sprite.color = 'white';
+          sprite.textHeight = 8;
+          obj.add(sprite);
+          return obj;
+        });
+    // Spread nodes a little wider
+    Graph.d3Force('charge').strength(-150);
+
+
+  </script>
+  </body>
