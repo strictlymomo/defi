@@ -19,7 +19,7 @@
       top: 5%;
       margin: auto;
       color: #fff;
-      font-size: 400%;
+      font-size: 300%;
       padding: 2%;
       z-index: 99999;
     }
@@ -31,7 +31,17 @@
 
     #total-value {
       right: 0;
-      text-align: right;
+      text-align: left;
+      width: 500px;
+    }
+
+    #flex {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    #left, #right {
+      width: 250px;
     }
 
     #total-value-stats {
@@ -95,6 +105,8 @@
 
     let w = window.innerWidth;
 
+    let total = 0;
+
     // 'running' is setInterval that can be cleared
     let running = null;
 
@@ -143,7 +155,7 @@
     }
   
     async function getTimeline() {
-      let response = await fetch('/data/maker3_timeline.json');
+      let response = await fetch('/data/maker3_timeline2.json');
       let timeline = await response.json();
       return timeline;
     }
@@ -316,26 +328,24 @@
           let match = timeline.find(function(el) {
             return el.date === dateString;
           });
-          let stat = match.value;
-          let fixedStat = {
-              valueIn: 50000,
-              valueOut: 10000,
-              contacts: 458,
-              EOAs: 4598,
-              txs: 13409304
-          };
-
-          // And then create our markup:
-          const markup = `
-              <p><strong>ETH IN:</strong> ${Math.round(fixedStat.valueIn)} ETH</p>
-              <p><strong>ETH OUT:</strong> ${Math.round(fixedStat.valueIn)} ETH</p>
-              <p><strong>SMART CONTRACTS:</strong> ${fixedStat.contracts}</p>
-              <p><strong>ACCOUNTS:</strong> ${fixedStat.EOAs}</p>
-              <p><strong>TOTAL TRANSACTIONS:</strong> ${Math.round(fixedStat.txs)}</p>
+          total += (match["value_in from EOA"] + match["value_in from contract"]) - (match["value_out to EOAs"] + match["value_out to contracts"]);
+          let markup = `
+          <div id="flex"> 
+          <div id="left"> 
+            <p><strong>${match["#_of_EOAs"]} ACCOUNTS</strong></p>
+            <p><strong>${Math.round(match["value_in from EOA"])} ETH received</strong> across ${match["#_of_txs_from_EOAs"]} TXs</p>
+            <p><strong>${Math.round(match["value_out to EOAs"])} ETH sent</strong> over ${match["#_of_tx_to_EOAs"]} TXs</p>    
+          </div>
+          <div id="right">
+            <p><strong>${match["#_of_contracts"]} CONTRACTS</strong></p>    
+            <p><strong>${Math.round(match["value_in from contract"])} ETH received</strong> across ${match["#_of_txs_from_contract"]} Txs</p>
+            <p><strong>${Math.round(match["value_out to contracts"])} ETH sent</strong> over ${match["#_of_tx_to_contracts"]} Txs</p>
+          </div>
+          </div>
           `;
 
           // document.getElementById('total-value').textContent = `${Math.round(match.value)} ETH locked`;
-          document.getElementById('total-value-header').textContent = `${Math.round(match.value)} ETH locked`;
+          document.getElementById('total-value-header').textContent = `${Math.round(total)} ETH locked`;
           document.getElementById('total-value-stats').innerHTML = markup;
 
           let {
