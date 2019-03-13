@@ -25,9 +25,9 @@
 
 let complete = false;
 
-let year = 2017;
-let month = 12;
-let day = 1;
+let year = 2018;
+let month = 1;
+let day = 0;
 
 let Graph = null;
 let fetchedData = null;
@@ -63,6 +63,15 @@ function makeDateString(day, month, year) {
 
 
 
+   graphData.nodes.push(
+      {
+    "id":"0x448a5065aebb8e423f0896e6c5d525c040f59af3",
+    "group": "Maker_tub",
+    "first_date": "2017-12-18"
+         }
+
+    );
+
 
     complete = true;
 
@@ -86,7 +95,7 @@ function makeDateString(day, month, year) {
         console.log("date", day, month, year);
 
         day += 1;
-        if (day > 30) {
+        if (day > 31) {
             day = 1;
             month += 1;
             if (month > 12) {
@@ -120,7 +129,7 @@ function makeDateString(day, month, year) {
         
     
 
-    }, 50);
+    }, 200);
     
 
 
