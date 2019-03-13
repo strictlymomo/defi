@@ -160,12 +160,20 @@
       return timeline;
     }
 
+    async function getTotalValue() {
+      let response = await fetch('/data/maker3_timeline.json');
+      let totalValue = await response.json();
+      return totalValue;
+    }
+
     let interval = 1000;
 
     async function init() {
 
       let timeline = await getTimeline();
+      let total = await getTotalValue();
       // console.log('timeline', timeline);
+      console.log('total', total);
 
       fetch('/data/maker3_pruned.json').then(res => res.json()).then(data => {
       // copy for later
@@ -328,7 +336,13 @@
           let match = timeline.find(function(el) {
             return el.date === dateString;
           });
-          total += (match["value_in from EOA"] + match["value_in from contract"]) - (match["value_out to EOAs"] + match["value_out to contracts"]);
+          let match_total = total.find(function(el) {
+            return el.date === dateString;
+          });
+
+          console.log('match_total', match_total);
+
+          // total += (match["value_in from EOA"] + match["value_in from contract"]) - (match["value_out to EOAs"] + match["value_out to contracts"]);
           let markup = `
           <div id="flex"> 
           <div id="left"> 
@@ -345,7 +359,7 @@
           `;
 
           // document.getElementById('total-value').textContent = `${Math.round(match.value)} ETH locked`;
-          document.getElementById('total-value-header').textContent = `${Math.round(total)} ETH locked`;
+          document.getElementById('total-value-header').textContent = `${Math.round(match_total.value)} ETH locked`;
           document.getElementById('total-value-stats').innerHTML = markup;
 
           let {
