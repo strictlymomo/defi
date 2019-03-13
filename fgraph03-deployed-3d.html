@@ -2,25 +2,68 @@
 <html>
 <head>
   <meta charset="utf-8"/>
-  <link href="https://fonts.googleapis.com/css?family=Barlow" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Barlow:300,400,700" rel="stylesheet">
+
     <style>
         
         body { margin: 0; font-family: Barlow, sans-serif; overflow: hidden; }
-        #total-value, #date, #legend {
+        #total-value, #date-container, #legend {
             position: fixed; top: 1%;
             margin: auto; color: #fff; font-size: 300%;
             padding: 2%; z-index: 99999;
         }
-        #date { left: 0; }
+        #date-container { left: 0; }
         #total-value { right: 0; text-align: 'right'; }
+        #total-value-stats { font-size: 80%; }
         #legend { left: 0; bottom: 0; text-align: left; top: initial; font-size: 150%; }
         
+
+
+    #flex {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    #left, #right {
+      width: 250px;
+    }
+
+    #total-value-stats {
+      text-align: left;
+    }
+
+    #total-value-stats strong {
+      width: 150px;
+      font-weight: 700;
+    }
+
+    #total-value header {
+      margin: 0;
+    }
+
+    #total-value-stats p {
+      font-weight: 300;
+      font-size: 16px;
+    }
+
     </style>
     <script src="node_modules/3d-force-graph/dist/3d-force-graph.js"></script>
     <script src="dist/moment.min.js"></script>
 </head>
 <body>
-<div id="total-value">0</div>
+<div id="total-value">
+    <header id="total-value-header"></header>
+    
+  </div>
+  <div id="date-container">
+    <div id="date"></div>
+    <div id="total-value-stats"></div>
+  </div>
+  
+  <div id="analysis-details-container"></div>
+
+
+
 <div id="legend">
     <div style="color: white">January</div>
     <div style="color: yellow">February</div>
@@ -36,11 +79,11 @@
     <div style="color: grey">December</div>
 </div>
 
-<div id="date">Dec, 2017</div>
+<div id="date"></div>
 <div id="3d-graph"></div>
 
 <script>
-    let interval = 350;
+    let interval = 200;
     let damping = 10; // how many ms to add to interval over time to account for an ever increasing node graph
     let running= null;
     
@@ -51,14 +94,15 @@
     let month = 1;
     let day = 0;
     
-    
+    let total = 0;
     let transferredValue = 0;
     
     let Graph = null;
     let fetchedData = null;
+    let getNewData = true;
     
     async function getTimeline() {
-      let response = await fetch('./data/maker3_timeline.json');
+      let response = await fetch('./data/maker3_timeline2.json');
       let timeline = await response.json();
       return timeline;
     }
@@ -104,31 +148,72 @@
                     day = 1; month += 1;
                     if (month > 12) {  
                         month = 1; year += 1;
-                        if ((year > 2018) && (month > 3)) console.log("END"); 
+                        
+                        if (year === 2019) {
+                            if (month > 3) {
+                                if (day > 10) {
+                                    
+                                    getNewData = false;
+                                    console.log("ended on year", year, "m", month, "d", day); 
+                                    
+                                    clearInterval(running);
+                                }
+                            }
+                        }
                     }
                 }
+
 
                 // format date
                 let dateString = makeDateString(day, month, year);
                 let formattedDate = moment(dateString).format("MMM D, YYYY");
-                document.getElementById('date').textContent = formattedDate;
+                if (formattedDate !== 'Invalid date') document.getElementById('date').textContent = formattedDate;
+                
+                if (getNewData === true) {
+
+                    
+                    // get new data
+                    let newNodes  = [].concat(fetchedData.nodes.filter((node) => node.first_date === dateString));
+                    let newLinks  = [].concat(fetchedData.links.filter((node) => node.date === dateString));
             
-                // get new data
-                let newNodes  = [].concat(fetchedData.nodes.filter((node) => node.first_date === dateString));
-                let newLinks  = [].concat(fetchedData.links.filter((node) => node.date === dateString));
-        
-                // if we have data, add it and update ETH locked
-                if ((newNodes.length + newLinks.length) > 1) {
-                    let { nodes, links } = Graph.graphData();
-                    Graph.graphData({ nodes: nodes.concat(newNodes), links: links.concat(newLinks) });
+                    // if we have data, add it and update ETH locked
+                    if ((newNodes.length + newLinks.length) > 1) {
+                        
+                        let { nodes, links } = Graph.graphData();
+                        Graph.graphData({ nodes: nodes.concat(newNodes), links: links.concat(newLinks) });
 
-                    let match = timeline.find(function(el) { return el.date === dateString; });
-                    let stat = match.value;
-                    document.getElementById('total-value').textContent = `${numberWithCommas(Math.round(match.value))} ETH locked`;
+                        
+                        let match = timeline.find(function(el) {
+                            return el.date === dateString;
+                        });
+                        total += (match["value_in from EOA"] + match["value_in from contract"]) - (match["value_out to EOAs"] + match["value_out to contracts"]);
+                        let markup = `
+                        <div id="flex"> 
+                        <div id="left"> 
+                            <p><strong>${match["#_of_EOAs"]} ACCOUNTS</strong></p>
+                            <p><strong>${Math.round(match["value_in from EOA"])} ETH received</strong> across ${match["#_of_txs_from_EOAs"]} TXs</p>
+                            <p><strong>${Math.round(match["value_out to EOAs"])} ETH sent</strong> over ${match["#_of_tx_to_EOAs"]} TXs</p>    
+                        </div>
+                        <div id="right">
+                            <p><strong>${match["#_of_contracts"]} CONTRACTS</strong></p>    
+                            <p><strong>${Math.round(match["value_in from contract"])} ETH received</strong> across ${match["#_of_txs_from_contract"]} Txs</p>
+                            <p><strong>${Math.round(match["value_out to contracts"])} ETH sent</strong> over ${match["#_of_tx_to_contracts"]} Txs</p>
+                        </div>
+                        </div>
+                        `;
 
-                    // slow down over time
-                    if (interval < 2000) { interval += damping; }
+                        // document.getElementById('total-value').textContent = `${Math.round(match.value)} ETH locked`;
+                        document.getElementById('total-value-header').textContent = `${numberWithCommas(Math.round(total))} ETH locked`;
+                        document.getElementById('total-value-stats').innerHTML = markup;
+
+
+                        // slow down over time
+                        if (interval < 2000) { interval += damping; }
+                    
+                    
+                    }
                 }
+
             }, interval);
         }); // end fetch
     }
