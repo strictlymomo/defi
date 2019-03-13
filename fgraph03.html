@@ -8,6 +8,32 @@
     body {
       margin: 0;
     }
+
+    #total-value, #date {
+      position: fixed;
+      top: 5%;
+      margin: auto;
+      color: black;
+      
+      font-size: 190%;
+
+      font-family: sans-serif;
+
+      padding: 2%;
+
+
+    }
+
+    #date {
+      left: 0;
+      top: 5%;
+    }
+
+    #total-value {
+      right: 0;
+      text-align: 'right';
+
+    }
   </style>
 
   <!--<script src="node_modules/3d-force-graph/dist/3d-force-graph.js"></script>-->
@@ -18,38 +44,49 @@
 <body>
 
 <button onClick="killUpdate()">stop</button>
+
+
+<div id="total-value">0</div>
+<div id="date">date</div>
+
 <div id="graph"></div>
+<div id="number-line" style="width: 100%; height: 20px; background-color: #333; position: fixed; bottom: 0"></div>
+<div id="number-line" style="width: 1%; height: 20px; background-color: blue; position: fixed; bottom: 0"></div>
+
+
 
 <script>
-let running= null;
 
-let complete = false;
+
+let w = window.innerWidth; 
+
+// 'running' is setInterval that can be cleared
+let running= null;
+let interval = 500;
+function killUpdate() { clearInterval(running); }
 
 let year = 2018;
 let month = 1;
 let day = 0;
 
+let transferredValue = 0;
+
 let Graph = null;
 let fetchedData = null;
 
-function killUpdate() {
-  clearInterval(running);
-
-}
 
 function makeDateString(day, month, year) {
+
     let innerDay = day;
     let innerMonth = month;
-    
 
     if (day < 10) innerDay = "0" + day;
     if (month < 10) innerMonth = "0" + month;
-    
     return year + "-" + innerMonth + "-" + innerDay;
 }
 
 
- fetch('/data/maker2.json').then(res => res.json()).then(data => {
+fetch('/data/maker2.json').then(res => res.json()).then(data => {
 
      fetchedData = data;
 
@@ -65,15 +102,10 @@ function makeDateString(day, month, year) {
 
 
 
-      console.log(graphData);
-
       let x = data.nodes.filter((node) => node.first_date.startsWith("2017"));
-      console.log(x);
+    
 
       let y = data.links.filter((link) => link.date.startsWith("2017"));
-
-
-  console.log(y);
 
 
 
@@ -102,11 +134,6 @@ function makeDateString(day, month, year) {
 
 
 
-    complete = true;
-
-    if (complete === true ) {
-      console.warn("setting up graph");
-
          Graph = ForceGraph()
       (document.getElementById('graph'))
         .graphData(graphData)
@@ -117,34 +144,43 @@ function makeDateString(day, month, year) {
         //.linkCurvature(1)
         //.dagMode('radialout')
         //.nodeAutoColorBy('coin')
-        .cooldownTime(3000)
+        .cooldownTime(500)
+        .linkAutoColorBy('target')
+        .linkWidth((link) => link.value / 800)
+        // .linkDirectionalParticles((link) => link.value / 1000)
+        // .linkDirectionalParticleSpeed((link) => link.value / 10000)
+
+
+
+
+
     
-    }
-
-
+  
 
 
     // mess with Graph now
     running = setInterval(() => {
-        console.log("date", day, month, year);
 
         day += 1;
         if (day > 31) {
             day = 1;
             month += 1;
-            if (month > 12) {
-                month = 1;
-                year += 1;
-                if ((year > 2018) && (month > 3)) {
-                    console.log("END");
+            interval = 1000;
+            
+            if (month > 12) { 
+              
+                month = 1; year += 1;
+                
+                if ((year > 2018) && (month > 3)) console.log("END");
 
-                }
             }
         }
 
         // now we have a new date
         let dateString = makeDateString(day, month, year);
-        console.log(dateString);
+          console.warn("---->", dateString);
+
+        
 
 
         let test  = [].concat(
@@ -154,36 +190,38 @@ function makeDateString(day, month, year) {
             fetchedData.links.filter((node) => node.date === dateString));
         
         
-        
+
+
+        document.getElementById('date').textContent = dateString;
 
         if (test.length + testLinks.length > 1) {
-
           console.log("adding", test.length, 'new nodes and', testLinks.length, ' new edges');
+          
+          let subTotal = 0;
+          testLinks.forEach(element => { subTotal += element.value; });
+          transferredValue += subTotal;
 
-
-
-
-
-
-          const { nodes, links } = Graph.graphData();
+          document.getElementById('total-value').textContent = Math.round(transferredValue);
+          
+           let { nodes, links } = Graph.graphData();
+                
+                Graph.graphData({
+                  nodes: nodes.concat(test),
+                  links: links.concat(testLinks)
+                });
           
 
-              
-            Graph.graphData({
-                nodes: nodes.concat(test),
-                links: links.concat(testLinks)
-            });
+          Graph.nodeRelSize(transferredValue/10000);
 
           
 
+
+
+        
         }
 
 
-
-
-    
-
-    }, 100);
+    }, interval);
     
 
 
@@ -192,45 +230,6 @@ function makeDateString(day, month, year) {
     
     
     });
-
-
-    /*
-
-      const Graph = ForceGraph()
-    (document.getElementById('graph'))
-      .linkDirectionalParticles(2)
-      .graphData(gData)
-      .backgroundColor('#dddddd')
-      .nodeCanvasObject((node, ctx, globalScale) => {
-        const label = node.label;
-        const fontSize = 12 / globalScale;
-        ctx.font = `${fontSize}px Sans-Serif`;
-        const textWidth = ctx.measureText(label).width;
-        const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.2); // some padding
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-        ctx.fillRect(node.x - bckgDimensions[0] / 2, node.y - bckgDimensions[1] / 2, ...bckgDimensions);
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillStyle = '#333';
-        ctx.fillText(label, node.x, node.y);
-      })
-      .linkDirectionalParticleSpeed(0.01) // this is the default
-
-
-  ;
-
-*/
-
-
-
-  /* /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  Data
-    Maker nodes = 3970
-    Maker edges = 
-
-
-
-  //////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
 
 
